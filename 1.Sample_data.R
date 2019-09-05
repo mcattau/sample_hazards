@@ -23,7 +23,7 @@ template<-raster("EmptyGrid/Empty_250_US.tif")
 
 # MTBS Fire data - WGS 1984 UTM Zone 13N
 # Shown below with MTBS fire data as an example, but fire data can be replaced with any shapefile dataset
-MTBS<-readOGR("MTBS","MTBS_WGS84_13N") 	
+hazard<-readOGR("MTBS","MTBS_WGS84_13N") 	
 
 
 
@@ -69,8 +69,11 @@ parsed_rasters <- function(all_data, prefix) {
 annual_rasters
 }
 
-fires<-parsed_rasters(MTBS, "fire") 
+fires<-parsed_rasters(hazard, "fire") 
 
-
+# Check visually
+plot(fires[[1]])
+hazard_proj<-spTransform(hazard, crs(template))
+plot(hazard_proj[hazard_proj$Year==min(hazard_proj$Year),], add=TRUE)
 
 
