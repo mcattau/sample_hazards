@@ -69,8 +69,8 @@ parsed_rasters <- function(all_data, prefix) {
 annual_rasters
 }
 
-fires<-parsed_rasters(hazard, "fire") 
-fires_stack<-stack(fires)
+fires<-parsed_rasters(hazard, "fire")  # List of rasters
+fires_stack<-stack(fires) # Make it a rasterstack
 
 # Check visually
 plot(fires[[1]])
