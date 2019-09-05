@@ -2,11 +2,11 @@
 #####################################
 ## Earth Lab, Twensday
 ## Contact info: megan.cattau@colorado.edu
-# This code: Imports shapefile data (e.g., hazards) and converts data to a list of annual rasters matching a uniform grid
+# This code: Parses shapefile data (e.g., hazard events) by year and converts data to a list of annual rasters of event count matching a uniform grid
 
 # Required data: 
 # EmptyGrid.tif to serve as a template for sampling
-# Data you'd like to sample with attribute "Year" in the dataset
+# Hazard data you'd like to sample (with attribute "Year" in the dataset)
 
 # Required packages:
 library(raster)
@@ -28,8 +28,6 @@ hazard<-readOGR("MTBS","MTBS_WGS84_13N")
 
 
 #####################################
-## Parse the data by year and convert to a list of rasters
-
 parsed_rasters <- function(all_data, prefix) {
 	# The function takes a vector layer (arg: all_data; e.g., MTBS), parses it by year (requires attribute "Year" in the dataset), creates annual rasters of event count, and gives each new object a name starting with a defined prefix (arg: prefix; e.g., "fire") and ending with the year "_yyyy"
 	# args= all_data (the original vector data), prefix (prefix for the name of the parsed raster layers)
@@ -37,17 +35,19 @@ parsed_rasters <- function(all_data, prefix) {
 
 	# Give each event a unique ID
 	all_data$uniqueID<-1:length(all_data)
+	
+	# Project the data to match the sampling grid
 	all_data_proj<-spTransform(all_data, crs(template))
 
-	# Parse the data based on Year
+	# Nested function - Parse data based on Year
 	separate_data_by_year<-function(year){
 		all_data_proj[all_data_proj@data$Year==year,]
 	}
 	
-	# Apply this function over the range of years, resulting in a list of vector objects for each year
+	# Apply this nested function over the range of years, resulting in a list of vector objects for each year
 	vector_list <- lapply(min(all_data$Year):max(all_data$Year), separate_data_by_year)
 
-	# Rasterize
+	# Nested function - Rasterize
 	raster_each_year<- function(polygon){
 	# Set the resolution and extent based on template raster
 	r <- raster(ncol=ncol(template), nrow=nrow(template))
@@ -62,7 +62,7 @@ parsed_rasters <- function(all_data, prefix) {
 	new_raster
 	}
 
-	# Apply this function over the list of parsed vectors, resulting in a list of raster objects for each year
+	# Apply this nested function over the list of parsed vectors, resulting in a list of raster objects for each year
 	annual_rasters<-lapply(vector_list, raster_each_year)
 	names(annual_rasters) <- paste(prefix, min(all_data$Year):max(all_data$Year), sep = "_")
 
@@ -70,6 +70,7 @@ annual_rasters
 }
 
 fires<-parsed_rasters(hazard, "fire") 
+fires_stack<-stack(fires)
 
 # Check visually
 plot(fires[[1]])
