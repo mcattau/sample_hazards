@@ -28,6 +28,41 @@ hazard<-readOGR("MTBS","MTBS_WGS84_13N")
 
 
 #####################################
+## For single raster that's count of events
+hazard_raster_fun <- function(all_data) {
+	# The function takes a vector layer (arg: all_data; e.g., MTBS) and creates raster of event count
+	# args= all_data (the original vector data)
+	# returns a raster object (count of events per pixel)
+
+	# Give each event a unique ID
+	all_data$uniqueID<-1:length(all_data)
+	
+	# Project the data to match the sampling grid
+	all_data_proj<-spTransform(all_data, crs(template))
+
+	# Nested function - Rasterize
+	raster_each_year<- function(polygon){
+	# Set the resolution and extent based on template raster
+	r <- raster(ncol=ncol(template), nrow=nrow(template))
+	extent(r)<-extent(template)
+	projection(r)<-projection(template)
+		
+		new_raster<-rasterize(polygon, r, field="uniqueID", fun="count", background=0) # could change field, function, and background value here if you wanted to capture a different attribute than counts of events
+		new_raster[is.na(new_raster)]<-0  # can remove this line if you want NA values rather than 0 if there is no hazard occurrence 
+	new_raster
+	}
+
+	# Apply this nested function over the list of parsed vectors, resulting in a list of raster objects for each year
+	hazard_raster<-raster_each_year(all_data_proj)
+
+hazard_raster
+}
+
+fire_raster<-hazard_raster_fun(hazard)
+
+
+
+## For annual rasters
 parsed_rasters <- function(all_data, prefix) {
 	# The function takes a vector layer (arg: all_data; e.g., MTBS), parses it by year (requires attribute "Year" in the dataset), creates annual rasters of event count, and gives each new object a name starting with a defined prefix (arg: prefix; e.g., "fire") and ending with the year "_yyyy"
 	# args= all_data (the original vector data), prefix (prefix for the name of the parsed raster layers)
