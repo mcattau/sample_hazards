@@ -2,11 +2,13 @@
 #####################################
 ## Earth Lab, Twensday
 ## Contact info: megan.cattau@colorado.edu
-# This code: Parses shapefile data (e.g., hazard events) by year and converts data to a list of annual rasters of event count matching a uniform grid
+# This code has two functions:
+# 1. Takes shapefile of hazard events and converts data to a raster of event count matching a uniform grid
+# 2. Parses shapefile data (e.g., hazard events) by year and converts data to a list of annual rasters of event count matching a uniform grid
 
 # Required data: 
 # EmptyGrid.tif to serve as a template for sampling
-# Hazard data you'd like to sample (with attribute "Year" in the dataset)
+# Hazard data you'd like to sample (with attribute "Year" in the dataset for second function)
 
 # Required packages:
 library(raster)
